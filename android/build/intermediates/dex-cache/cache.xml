@@ -2,74 +2,60 @@
 <items version="2" >
 
     <item
-        jar="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/exploded-aar/com.android.support/cardview-v7/23.0.0/jars/classes.jar"
-        jumboMode="false"
-        revision="23.0.0"
-        sha1="1ccbc26be2c465c622a48310e8092241b01abe80">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/classes-106015dcb544fcf15a0df3e1fc64c98693cadf0c.jar" />
-    </item>
-    <item
-        jar="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/exploded-aar/com.android.support/support-v13/23.0.0/jars/classes.jar"
-        jumboMode="false"
-        revision="23.0.0"
-        sha1="bb0ac3f3ee2d71854501cc28e52cc84a20209b41">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/classes-689f0573d9fb1a52aa1c501528156f181081cc53.jar" />
-    </item>
-    <item
-        jar="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.0/jars/classes.jar"
-        jumboMode="false"
-        revision="23.0.0"
-        sha1="8413c27b45b7fe61dca4a98159f65e2cee215f5a">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/classes-f98a1c9efc83e434867b5d578dc838cd527d43b4.jar" />
-    </item>
-    <item
-        jar="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.0/jars/libs/internal_impl-23.0.0.jar"
-        jumboMode="false"
-        revision="23.0.0"
-        sha1="8bd336eeae661e8311330284897ee07f8ebaa297">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/internal_impl-23.0.0-e74558fe5413b187d6cb875e974ec3d9e16998d6.jar" />
-    </item>
-    <item
-        jar="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/libs/Parse-1.9.4.jar"
-        jumboMode="false"
-        revision="23.0.0"
-        sha1="56c22930b5d4f77015b6a40c7f14103d3e101001">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/Parse-1.9.4-8d48f7e06abb83c8e6e717713b7e7396ae140492.jar" />
-    </item>
-    <item
-        jar="/Users/keisuke/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/23.0.0/support-annotations-23.0.0.jar"
-        jumboMode="false"
-        revision="23.0.0"
-        sha1="990e7f98a7bad86a40b1f0bcfeb039023afd0839">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/support-annotations-23.0.0-36f2cc49d3c77ddb3eadd5dce2963ebb9a35e090.jar" />
-    </item>
-    <item
-        jar="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/libs/bolts-android-1.2.0.jar"
+        jar="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/libs/bolts-android-1.2.0.jar"
         jumboMode="false"
         revision="23.0.0"
         sha1="6ee2953ccf51ce72b6d548c30c4633b99eb4f9dd">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/bolts-android-1.2.0-eddf95b15035fd00e984f9ce05460be19706b562.jar" />
+        <dex dex="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/pre-dexed/debug/bolts-android-1.2.0-20c836be80a60fde324c6e7b848016c78ab62715.jar" />
     </item>
     <item
-        jar="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/libs/ParseCrashReporting-1.9.4.jar"
+        jar="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.0"
+        sha1="c31e21b53ff2f74664e498248d01453a32e32d48">
+        <dex dex="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/pre-dexed/debug/classes-75d36ab574ca04ffa79d38b6a28e091b8e5a8b3b.jar" />
+    </item>
+    <item
+        jar="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/libs/ParseCrashReporting-1.9.4.jar"
         jumboMode="false"
         revision="23.0.0"
         sha1="7a11f2d74111fd9b02c2d091a1b76b82f6a4357e">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/ParseCrashReporting-1.9.4-8510345ff4a3f3b540570cc0d2647edd1dddcfe6.jar" />
+        <dex dex="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/pre-dexed/debug/ParseCrashReporting-1.9.4-fb50499dc928d069eb80546cbc6aed9876dad868.jar" />
     </item>
     <item
-        jar="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/exploded-aar/com.android.support/support-v13/23.0.0/jars/libs/internal_impl-23.0.0.jar"
+        jar="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.1/jars/libs/internal_impl-23.0.1.jar"
         jumboMode="false"
         revision="23.0.0"
-        sha1="5d4bccb885c8a89d066ecb6c4addb553a99a79a2">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/internal_impl-23.0.0-c8c0074c26d049ed227e27f44135861214da1e20.jar" />
+        sha1="aa92916125166649d8ad4ba3940c3dd7515596d3">
+        <dex dex="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/pre-dexed/debug/internal_impl-23.0.1-d80b7300e4cbbcbd2e6c5b9fcd4cc0ac89d5e1ee.jar" />
     </item>
     <item
-        jar="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/exploded-aar/com.jjoe64/graphview/4.0.1/jars/classes.jar"
+        jar="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/libs/Parse-1.9.4.jar"
+        jumboMode="false"
+        revision="23.0.0"
+        sha1="56c22930b5d4f77015b6a40c7f14103d3e101001">
+        <dex dex="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/pre-dexed/debug/Parse-1.9.4-93a233a963d724153105d3feac916fc47811fb98.jar" />
+    </item>
+    <item
+        jar="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/exploded-aar/com.jjoe64/graphview/4.0.1/jars/classes.jar"
         jumboMode="false"
         revision="23.0.0"
         sha1="37bf8de5b4f9e7e93006db783b9b3168e32e38e9">
-        <dex dex="/Users/keisuke/workspace/github/BleGroundSensorSystem/android/Application/build/intermediates/pre-dexed/debug/classes-b9f879bc772e8aea0ad1c06579599b106ead5825.jar" />
+        <dex dex="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/pre-dexed/debug/classes-6d08e0c7605ba8ad3e61b797865aef3c0b3da788.jar" />
+    </item>
+    <item
+        jar="/Users/keisuke/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/23.0.1/support-annotations-23.0.1.jar"
+        jumboMode="false"
+        revision="23.0.0"
+        sha1="1fce89a6428c51467090d7f424e4c9c3dbd55f7e">
+        <dex dex="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/pre-dexed/debug/support-annotations-23.0.1-009deeeb288ef4bec4a721d92fe06d6eff6c7cf8.jar" />
+    </item>
+    <item
+        jar="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.0"
+        sha1="d86429b0f0b3f3cafbeb78dda1b9d89119ccb05d">
+        <dex dex="/Users/keisuke/workspace/github/BleSensorGroundSystem/app/build/intermediates/pre-dexed/debug/classes-462a79e4134ff64986caac4f672b1bd6822f5ad8.jar" />
     </item>
 
 </items>
