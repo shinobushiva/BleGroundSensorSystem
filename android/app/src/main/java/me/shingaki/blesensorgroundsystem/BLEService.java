@@ -112,6 +112,7 @@ public class BLEService {
 
     public void startScanByBleScanner()
     {
+        Log.d(TAG, "BLE Scan Started");
         mBleScanner = mBleAdapter.getBluetoothLeScanner();
 
         // デバイスの検出.

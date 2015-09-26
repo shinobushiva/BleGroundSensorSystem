@@ -79,7 +79,7 @@ public class GraphUpdateTask extends TimerTask {
 
     @Override
     public void run() {
-        Log.d(TAG, "GraphUpdate");
+        //Log.d(TAG, "GraphUpdate");
 
         mHandler.post(new Runnable() {
             @Override
