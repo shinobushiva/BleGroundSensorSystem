@@ -51,13 +51,15 @@ public class MainActivity extends AppCompatActivity {
                     return new SensorMonitorFragment();
                 case 1:
                     return new ReportListFragment();
+                case 2:
+                    return LogMapFragment.newInstance();
             }
             return null;
         }
 
         @Override
         public int getCount() {
-            return 2;
+            return 3;
         }
 
         @Override
