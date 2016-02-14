@@ -1,18 +1,22 @@
 package me.shingaki.blesensorgroundsystem;
 
-import android.os.Bundle;
-import android.os.Handler;
+import android.Manifest;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
-
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
 import java.util.Locale;
 
 
@@ -103,37 +107,66 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         // Parseサービス
         mParseService = new ParseService(this);
 
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission_group.LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, "has location permission");
+            generateMainLayout();
+        } else {
+            Log.d(TAG, "request permissions");
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+        }
+
+
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPager) findViewById(R.id.pager);
+    }
+
+    private void generateMainLayout() {
         // GPSのスタート
         mLocationService = new LocationService(this);
+
         // BLEのスタート //check: BLESerivce#setView
         mBleService = new BLEService(this);
-
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
-
-
     }
 
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        Log.d(TAG, "onRequestPermissionsResult");
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case 0: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "onRequestPermissionsResult / valid");
+                    generateMainLayout();
+                } else {
+                    Log.d(TAG, "onRequestPermissionsResult / invalid");
+                }
+
+                break;
+            }
+        }
+    }
+
+    @Override
     protected void onDestroy() {
+        Log.d(TAG, "onDestroy");
         super.onDestroy();
         mBleService.disconnect();
     }
@@ -156,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-        if(id == R.id.action_ble_connect){
+        if (id == R.id.action_ble_connect) {
             mBleService.disconnect();
             mBleService.startScanByBleScanner();
         }
