@@ -3,12 +3,15 @@ package me.shingaki.blesensorgroundsystem;
 import android.app.Activity;
 import android.location.Location;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
+import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.SaveCallback;
 
 import java.util.Date;
 import java.util.List;
@@ -78,6 +81,28 @@ public class ParseService {
 //                }
 //            }
 //        });
+    }
+
+    /**
+     * マーカーのタイトルと座標を保存する
+     * @param title
+     * @param latLng
+     * @throws ParseException
+     */
+    public void uploadMarker(String title, LatLng latLng, SaveCallback sc) throws ParseException {
+        ParseObject object = new ParseObject("MapMarker");
+        object.put("title", title);
+        object.put("latlng", new ParseGeoPoint(latLng.latitude, latLng.longitude));
+        object.saveInBackground(sc);
+    }
+
+    /**
+     * マーカーリストを取得する
+     * @param fc
+     */
+    public void listMarker(FindCallback<ParseObject> fc) {
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("MapMarker").orderByDescending("createdAt");
+        query.findInBackground(fc);
     }
 
     public void getSensorReport(String oid, GetCallback<ParseObject> gc){

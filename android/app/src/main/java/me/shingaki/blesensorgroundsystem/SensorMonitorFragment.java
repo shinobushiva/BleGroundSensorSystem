@@ -51,7 +51,20 @@ public class SensorMonitorFragment extends Fragment{
 
     private Handler mHandler = new Handler();
 
+    public SensorMonitorFragment() {
+
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+
+        }
+    }
+
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
 
         activity = (MainActivity)getActivity();
         mLocationService = activity.mLocationService;
