@@ -9,11 +9,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -204,6 +206,9 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
+    /**
+     * 下部のリストを生成
+     */
     private void updateListView() {
         List<Map<String, String>> list = new ArrayList<>();
 
@@ -223,6 +228,13 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
         );
 
         mPinListView.setAdapter(adapter);
+        mPinListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Marker m = mMarkerList.get(position);
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(m.getPosition()));
+            }
+        });
     }
 
     private MarkerOptions createMarkerOptions(String title, LatLng latLng) {
