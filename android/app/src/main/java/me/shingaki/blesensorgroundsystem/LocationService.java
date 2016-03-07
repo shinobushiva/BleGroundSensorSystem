@@ -34,6 +34,9 @@ public class LocationService implements LocationListener {
 
     private final static String TAG = LocationService.class.getSimpleName();
 
+    // http://openweathermap.org/
+    private final static String WEATHER_APP_ID = "d325e4d1ba4b3bafdb7e28c50b4b8fc7";
+
     private Handler mHandler = new Handler();
 
     private MainActivity activity;
@@ -175,6 +178,7 @@ public class LocationService implements LocationListener {
             String requestURL = "http://api.openweathermap.org/data/2.5/weather?"
                     + "lat=" + latitude
                     + "&lon=" + longitude
+                    + "&APPID=" + WEATHER_APP_ID
                     + "&mode=json";
 
             URL url = new URL(requestURL);
