@@ -13,8 +13,11 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -76,9 +79,25 @@ public class BLEService {
         mBleAdapter = mBleManager.getAdapter();
 
         // Checks if Bluetooth is supported on the device.
-        if (mBleAdapter == null) {
-            Toast.makeText(activity, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
-            activity.finish();
+        if (mBleAdapter == null || !mBleAdapter.isEnabled()) {
+
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(activity);
+            alertDialog.setTitle("お知らせ");
+            alertDialog.setMessage("端末のBluetoothをONにして、アプリの再起動をしてください。");
+            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    activity.startActivity(enableBluetoothIntent);
+                    activity.finish();
+                }
+            });
+
+            alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    activity.finish();
+                }
+            });
+            alertDialog.show();
             return;
         }
 
