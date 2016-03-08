@@ -105,6 +105,20 @@ public class ParseService {
         query.findInBackground(fc);
     }
 
+    /**
+     * 指定のマーカーから指定範囲内のマーカーを探す
+     * @param latLng 緯度/経度
+     * @param distance latLngからの距離範囲(km)
+     * @param fc クエリ完了時のコールバック
+     */
+    public void searchMapMarker(LatLng latLng, double distance, FindCallback<ParseObject> fc) {
+        ParseGeoPoint point = new ParseGeoPoint(latLng.latitude, latLng.longitude);
+        ParseQuery<ParseObject> query =
+                ParseQuery.getQuery("MapMarker")
+                    .whereWithinKilometers("latlng", point, distance);
+        query.findInBackground(fc);
+    }
+
     public void getSensorReport(String oid, GetCallback<ParseObject> gc){
         ParseQuery<ParseObject> query = ParseQuery.getQuery("SensorReport");
         query.getInBackground(oid, gc);

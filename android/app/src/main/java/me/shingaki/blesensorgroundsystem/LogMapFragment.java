@@ -13,10 +13,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -51,11 +53,14 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap mMap;         // マップオブジェクト
     private EditText mEditTitle;    // 登録マーカーのタイトル入力
     private Button mSaveButton;     // 登録マーカー保存ボタン
+    private Spinner mDistanceSpinner;   // 距離範囲の選択
+    private AdapterView.OnItemSelectedListener mSpinnerListener;    // spinnerのリスナー
     private ListView mPinListView;  // 下部のリスト
 
-    private ArrayList<MarkerCircle> mMarkerList;    // リストビューに対応するマーカーリスト
+    private ArrayList<Marker> mMarkerList;    // リストビューに対応するマーカーリスト
     private List<ParseObject> mParseList;           // リストビューに対応するParseリスト
-    private Marker mCurrentMarker;  // 登録マーカー
+
+    private RegistrationMarker mRegistrationMarker = new RegistrationMarker();
 
     private ParseService mParseService;
     private ProgressDialog mProgress;
@@ -96,7 +101,12 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
 
         mEditTitle = (EditText) view.findViewById(R.id.editPinTitle);
         mSaveButton = (Button) view.findViewById(R.id.pinSaveButton);
+        mDistanceSpinner = (Spinner) view.findViewById(R.id.distanceSpinner);
         mPinListView = (ListView) view.findViewById(R.id.pinListView);
+
+        ArrayAdapter adapter = ArrayAdapter.createFromResource(getActivity(), R.array.distance_spinner, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mDistanceSpinner.setAdapter(adapter);
 
         mSaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,14 +117,14 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
                     return;
                 }
 
-                if (mCurrentMarker == null) {
+                if (mRegistrationMarker.getMarker() == null) {
                     Toast.makeText(getActivity(), "マップをタップしてマーカーを設置", Toast.LENGTH_LONG).show();
                     return;
                 }
 
                 try {
                     mProgress.show();
-                    mParseService.uploadMarker(text, mCurrentMarker.getPosition(), new SaveCallback() {
+                    mParseService.uploadMarker(text, mRegistrationMarker.getPosition(), new SaveCallback() {
                         @Override
                         public void done(ParseException e) {
                             Log.d(TAG, "uploadMarker / done");
@@ -131,6 +141,28 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
+        // 範囲選択
+        mSpinnerListener = new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG, "onItemSelected / " + position);
+
+                if (position != 0 && mRegistrationMarker.getMarker() == null) {
+                    Toast.makeText(getActivity(), "範囲検索のために登録マーカーを設置してください", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                mRegistrationMarker.setDistanceIndex(position);
+                mapReset();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.d(TAG, "onNothingSelected");
+            }
+        };
+        mDistanceSpinner.setSelection(0, false);
+        mDistanceSpinner.setOnItemSelectedListener(mSpinnerListener);
 
         MapFragment mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.google_map);
         mapFragment.getMapAsync(this);
@@ -140,9 +172,7 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
 
     private void clearMarker() {
         mEditTitle.setText("");
-        mCurrentMarker.remove();
-        mCurrentMarker = null;
-
+        mRegistrationMarker.clear();
     }
 
     @Override
@@ -166,13 +196,15 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
             public void onMapClick(LatLng latLng) {
                 Log.d(TAG, "タップ位置\n緯度：" + latLng.latitude + "\n経度:" + latLng.longitude);
 
-                if (mCurrentMarker == null) {
-                    MarkerOptions markerOptions = new MarkerOptions().position(latLng).draggable(true).icon(getMarkerIcon("#ff2299"));
-                    mCurrentMarker = mMap.addMarker(markerOptions);
+                if (mRegistrationMarker.getMarker() == null) {
+                    Marker marker = mMap.addMarker(createCurrentMarkerOptions(latLng));
+                    mRegistrationMarker.setMarker(marker);
                 } else {
-                    mCurrentMarker.setPosition(latLng);
+                    mRegistrationMarker.setPosition(latLng);
+                    if (!mRegistrationMarker.isAll()) {
+                        mapReset();
+                    }
                 }
-
             }
         });
 
@@ -191,7 +223,10 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onMarkerDragEnd(Marker marker) {
                 Log.d(TAG, "onMarkerDragEnd");
-                mCurrentMarker = marker;
+                mRegistrationMarker.setMarker(marker);
+                if (!mRegistrationMarker.isAll()) {
+                    mapReset();
+                }
             }
         });
 
@@ -201,9 +236,10 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
             public boolean onMarkerClick(Marker marker) {
                 Log.d(TAG, "onMarkerClick");
 
-                if (marker.equals(mCurrentMarker)) {
-                    mCurrentMarker.remove();
-                    mCurrentMarker = null;
+                if (marker.equals(mRegistrationMarker.getMarker())) {
+                    mRegistrationMarker.clear();
+                    spinnerReset();
+                    mapReset();
                 }
 
                 return false;
@@ -213,12 +249,23 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     /**
+     * スピナーを初期位置に変更する
+     */
+    private void spinnerReset() {
+        mDistanceSpinner.setOnItemSelectedListener(null);
+        mDistanceSpinner.setSelection(0, false);
+        mDistanceSpinner.setOnItemSelectedListener(mSpinnerListener);
+    }
+
+    /**
      * 登録されたマーカーを取得する
      */
     private void fetchList() {
-        mParseService.listMarker(new FindCallback<ParseObject>() {
+
+        FindCallback<ParseObject> fc = new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> list, ParseException e) {
+                mProgress.dismiss();
                 mMarkerList = new ArrayList<>();
                 mParseList = list;
 
@@ -228,12 +275,36 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
                     LatLng latLng = new LatLng(pgo.getLatitude(), pgo.getLongitude());
                     Marker marker = mMap.addMarker(createMarkerOptions(title, latLng));
 
-                    mMarkerList.add(new MarkerCircle(marker));
+                    mMarkerList.add(marker);
                 }
 
                 updateListView();
+                showCurrentMarkerCircle();
             }
-        });
+        };
+
+        mProgress.show();
+        if (mRegistrationMarker.isAll()) {
+            mParseService.listMarker(fc);
+        } else {
+            mParseService.searchMapMarker(mRegistrationMarker.getPosition(), mRegistrationMarker.getDistance(), fc);
+        }
+
+    }
+
+    private void showCurrentMarkerCircle() {
+        LatLng ll = mRegistrationMarker.getPosition();
+
+        if (!mRegistrationMarker.isAll()) {
+            CircleOptions circleOptions = new CircleOptions()
+                    .center(ll)
+                    .radius(mRegistrationMarker.getDistanceMetre())
+                    .strokeColor(Color.argb(0xFF, 0x33, 0x99, 0xFF))
+                    .strokeWidth(10.0f)
+                    .fillColor(Color.argb(0x44, 0x33, 0x99, 0xFF));
+            Circle circle = mMap.addCircle(circleOptions);
+            mRegistrationMarker.setCircle(circle);
+        }
     }
 
     /**
@@ -242,8 +313,7 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
     private void updateListView() {
         List<Map<String, String>> list = new ArrayList<>();
 
-        for (MarkerCircle mc : mMarkerList) {
-            Marker o = mc.getMarker();
+        for (Marker o : mMarkerList) {
             Map<String, String> map = new HashMap<>();
             map.put("title", o.getTitle());
             LatLng ll = o.getPosition();
@@ -265,23 +335,10 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.d(TAG, "mPinListView / onItemClick / " + position);
-                MarkerCircle mc = mMarkerList.get(position);
-                Marker m = mc.getMarker();
+
+                Marker m = mMarkerList.get(position);
                 LatLng ll = m.getPosition();
-
-                if (mc.hasMapCircle() == false) {
-                    CircleOptions circleOptions = new CircleOptions()
-                            .center(ll)
-                            .radius(1000)
-                            .strokeColor(Color.argb(0xFF, 0x33, 0x99, 0xFF))
-                            .strokeWidth(10.0f)
-                            .fillColor(Color.argb(0x44, 0x33, 0x99, 0xFF));
-                    Circle circle = mMap.addCircle(circleOptions);
-                    mc.setCircle(circle);
-                }
-
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(ll));
-
             }
         });
 
@@ -335,11 +392,32 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
                     Log.e(TAG, e.getMessage());
                     Toast.makeText(getActivity(), "削除に失敗しました", Toast.LENGTH_LONG).show();
                 }
-
-                mMap.clear();
-                fetchList();
+                mapReset();
             }
         });
+    }
+
+    /**
+     * サーバーから再取得し、再描画
+     */
+    private void mapReset() {
+        mMap.clear();
+
+        Marker current = mRegistrationMarker.getMarker();
+        if (current != null) {   // 登録マーカー移し替え
+            Marker newMarker = mMap.addMarker(createCurrentMarkerOptions(current.getPosition()));
+            mRegistrationMarker.setMarker(newMarker);
+        }
+        fetchList();
+    }
+
+    /**
+     * 登録用マーカー
+     * @param latLng
+     * @return
+     */
+    private MarkerOptions createCurrentMarkerOptions (LatLng latLng) {
+        return new MarkerOptions().position(latLng).draggable(true).icon(getMarkerIcon("#ff2299"));
     }
 
     /**
@@ -365,13 +443,50 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
         return BitmapDescriptorFactory.defaultMarker(hsv[0]);
     }
 
-    private class MarkerCircle {
+    /**
+     * 範囲距離用Enum
+     */
+    private enum DISTANCE {
+        ALL(0),
+        D1KM(1),
+        D3M(3),
+        D5KM(5),
+        D10KM(10)
+        ;
 
+        private final double distance;
+
+        private DISTANCE(final double distance) {
+            this.distance = distance;
+        }
+
+        public double getDouble() {
+            return this.distance;
+        }
+    }
+
+    /**
+     * 登録用マーカーのクラス
+     */
+    private class RegistrationMarker {
+
+        /**
+         * マーカー
+         */
         private Marker marker;
+
+        /**
+         * 範囲
+         */
         private Circle circle;
 
-        public MarkerCircle(Marker marker) {
-            this.marker = marker;
+        /**
+         * サークルの距離
+         */
+        private DISTANCE distance = DISTANCE.ALL;
+
+        public RegistrationMarker() {
+
         }
 
         public Marker getMarker() {
@@ -379,6 +494,9 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
         }
 
         public void setMarker(Marker marker) {
+            if (this.marker != null) {
+                this.marker.remove();
+            }
             this.marker = marker;
         }
 
@@ -387,11 +505,76 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
         }
 
         public void setCircle(Circle circle) {
+            if (this.circle != null) {
+                this.circle.remove();
+            }
             this.circle = circle;
         }
 
-        public boolean hasMapCircle() {
-            return this.circle != null;
+        /**
+         * doubleを返却
+         * @return
+         */
+        public double getDistance() {
+            return distance.getDouble();
+        }
+
+        public void setDistanceIndex(int position) {
+            switch (position) {
+                case 1:
+                    this.distance = DISTANCE.D1KM;
+                    break;
+                case 2:
+                    this.distance = DISTANCE.D3M;
+                    break;
+                case 3:
+                    this.distance = DISTANCE.D5KM;
+                    break;
+                case 4:
+                    this.distance = DISTANCE.D10KM;
+                    break;
+                default:
+                    this.distance = DISTANCE.ALL;
+                    break;
+            }
+        }
+
+        /**
+         * マーカーのLatLngを返却
+         * @return
+         */
+        public LatLng getPosition() {
+            if (this.marker == null) {
+                return null;
+            } else {
+                return this.marker.getPosition();
+            }
+        }
+
+        /**
+         * 登録マーカー初期化
+         */
+        public void clear() {
+            if (this.marker != null) {
+                this.marker.remove();
+                this.distance = DISTANCE.ALL;
+                this.marker = null;
+            }
+        }
+
+        public void setPosition(LatLng latLng) {
+            if (this.marker != null) {
+                this.marker.setPosition(latLng);
+            }
+        }
+
+        public boolean isAll() {
+            return this.distance == DISTANCE.ALL;
+        }
+
+        public double getDistanceMetre() {
+            return this.distance.getDouble() * 1000;
         }
     }
+
 }
