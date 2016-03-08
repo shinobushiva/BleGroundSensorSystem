@@ -3,8 +3,11 @@ package me.shingaki.blesensorgroundsystem;
 
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,9 +25,12 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
@@ -36,23 +43,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A simple {@link Fragment} subclass.
- * Use the {@link LogMapFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Google Mapsを利用してマーカーの登録/表示ができるフラグメント
  */
 public class LogMapFragment extends Fragment implements OnMapReadyCallback {
     private final static String TAG = LogMapFragment.class.getSimpleName();
 
-    private GoogleMap mMap;
-    private EditText mEditTitle;
-    private Button mSaveButton;
-    private ListView mPinListView;
+    private GoogleMap mMap;         // マップオブジェクト
+    private EditText mEditTitle;    // 登録マーカーのタイトル入力
+    private Button mSaveButton;     // 登録マーカー保存ボタン
+    private ListView mPinListView;  // 下部のリスト
 
-    private ArrayList<Marker> mMarkerList;
-    private Marker mCurrentMarker;
+    private ArrayList<MarkerCircle> mMarkerList;    // リストビューに対応するマーカーリスト
+    private List<ParseObject> mParseList;           // リストビューに対応するParseリスト
+    private Marker mCurrentMarker;  // 登録マーカー
 
     private ParseService mParseService;
     private ProgressDialog mProgress;
+
 
     public LogMapFragment() {
         // Required empty public constructor
@@ -73,7 +80,7 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
         if (getArguments() != null) {
 
         }
-        mParseService = ((MainActivity)getActivity()).mParseService;
+        mParseService = ((MainActivity) getActivity()).mParseService;
 
         mProgress = new ProgressDialog(getActivity());
         mProgress.setMessage("Loading...");
@@ -153,6 +160,7 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
 
         fetchList();
 
+        // マップクリックした場合登録マーカーを作成/移動する
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -204,11 +212,15 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
+    /**
+     * 登録されたマーカーを取得する
+     */
     private void fetchList() {
         mParseService.listMarker(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> list, ParseException e) {
                 mMarkerList = new ArrayList<>();
+                mParseList = list;
 
                 for (ParseObject o : list) {
                     String title = o.getString("title");
@@ -216,7 +228,7 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
                     LatLng latLng = new LatLng(pgo.getLatitude(), pgo.getLongitude());
                     Marker marker = mMap.addMarker(createMarkerOptions(title, latLng));
 
-                    mMarkerList.add(marker);
+                    mMarkerList.add(new MarkerCircle(marker));
                 }
 
                 updateListView();
@@ -230,7 +242,8 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
     private void updateListView() {
         List<Map<String, String>> list = new ArrayList<>();
 
-        for (Marker o : mMarkerList) {
+        for (MarkerCircle mc : mMarkerList) {
+            Marker o = mc.getMarker();
             Map<String, String> map = new HashMap<>();
             map.put("title", o.getTitle());
             LatLng ll = o.getPosition();
@@ -246,11 +259,85 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
         );
 
         mPinListView.setAdapter(adapter);
+
+        // 下部リストクリック時
         mPinListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Marker m = mMarkerList.get(position);
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(m.getPosition()));
+                Log.d(TAG, "mPinListView / onItemClick / " + position);
+                MarkerCircle mc = mMarkerList.get(position);
+                Marker m = mc.getMarker();
+                LatLng ll = m.getPosition();
+
+                if (mc.hasMapCircle() == false) {
+                    CircleOptions circleOptions = new CircleOptions()
+                            .center(ll)
+                            .radius(1000)
+                            .strokeColor(Color.argb(0xFF, 0x33, 0x99, 0xFF))
+                            .strokeWidth(10.0f)
+                            .fillColor(Color.argb(0x44, 0x33, 0x99, 0xFF));
+                    Circle circle = mMap.addCircle(circleOptions);
+                    mc.setCircle(circle);
+                }
+
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(ll));
+
+            }
+        });
+
+        // 長押しクリックで該当マーカー削除
+        mPinListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG, "mPinListView / onItemLongClick / " + position);
+
+                final Context context = getActivity();
+                final int index = position;
+
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
+                alertDialog.setTitle("削除:マーカー");
+                alertDialog.setMessage("選択したマーカーを削除します。");
+                alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(TAG, "OK");
+                        removeMarkerAndClear(index);
+                    }
+                });
+                alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(TAG, "Cancel");
+                    }
+                });
+                alertDialog.show();
+
+                return false;
+            }
+        });
+
+    }
+
+    /**
+     * マーカー削除
+     * @param index 削除するアイテムのリストインデックス
+     */
+    private void removeMarkerAndClear(int index) {
+        Log.d(TAG, "removeMarkerAndClear / " + index);
+        ParseObject po = mParseList.get(index);
+
+        Log.d(TAG, po.toString());
+        mProgress.show();
+        po.deleteInBackground(new DeleteCallback() {
+            @Override
+            public void done(ParseException e) {
+                mProgress.hide();
+
+                if (e != null) {
+                    Log.e(TAG, e.getMessage());
+                    Toast.makeText(getActivity(), "削除に失敗しました", Toast.LENGTH_LONG).show();
+                }
+
+                mMap.clear();
+                fetchList();
             }
         });
     }
@@ -276,5 +363,35 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
         float[] hsv = new float[3];
         Color.colorToHSV(Color.parseColor(color), hsv);
         return BitmapDescriptorFactory.defaultMarker(hsv[0]);
+    }
+
+    private class MarkerCircle {
+
+        private Marker marker;
+        private Circle circle;
+
+        public MarkerCircle(Marker marker) {
+            this.marker = marker;
+        }
+
+        public Marker getMarker() {
+            return marker;
+        }
+
+        public void setMarker(Marker marker) {
+            this.marker = marker;
+        }
+
+        public Circle getCircle() {
+            return circle;
+        }
+
+        public void setCircle(Circle circle) {
+            this.circle = circle;
+        }
+
+        public boolean hasMapCircle() {
+            return this.circle != null;
+        }
     }
 }
