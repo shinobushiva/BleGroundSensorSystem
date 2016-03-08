@@ -237,10 +237,23 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
+    /**
+     * マーカー作成
+     * snippetは改行すると省略表示とされるため1行表示としている
+     * @param title マーカークリック時に表示するタイトル
+     * @param latLng マーカーを表示する緯度・経度
+     * @return
+     */
     private MarkerOptions createMarkerOptions(String title, LatLng latLng) {
-        return new MarkerOptions().position(latLng).title(title).icon(getMarkerIcon("#00ff00"));
+        String snippet = String.format("lat:%6f lng:%6f", latLng.latitude, latLng.longitude);
+        return new MarkerOptions().position(latLng).title(title).snippet(snippet).icon(getMarkerIcon("#00ff00"));
     }
 
+    /**
+     * マーカー用にColorオブジェクトを作成
+     * @param color 16進数RGB
+     * @return
+     */
     public BitmapDescriptor getMarkerIcon(String color) {
         float[] hsv = new float[3];
         Color.colorToHSV(Color.parseColor(color), hsv);
