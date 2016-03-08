@@ -95,7 +95,13 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onClick(View v) {
                 String text = mEditTitle.getText().toString();
-                if (text.length() == 0 || mCurrentMarker == null) {
+                if (text.length() == 0) {
+                    Toast.makeText(getActivity(), "タイトルを入力", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                if (mCurrentMarker == null) {
+                    Toast.makeText(getActivity(), "マップをタップしてマーカーを設置", Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -162,6 +168,7 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
+        // 登録用マーカーのドラッグ移動
         mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
             public void onMarkerDragStart(Marker marker) {
@@ -180,9 +187,20 @@ public class LogMapFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        // 登録用マーカーをクリックすると削除
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Log.d(TAG, "onMarkerClick");
+
+                if (marker.equals(mCurrentMarker)) {
+                    mCurrentMarker.remove();
+                    mCurrentMarker = null;
+                }
+
+                return false;
+            }
+        });
 
     }
 
