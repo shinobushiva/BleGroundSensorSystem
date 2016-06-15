@@ -3,7 +3,6 @@ package me.shingaki.blesensorgroundsystem;
 import android.app.Application;
 
 import com.parse.Parse;
-import com.parse.ParseCrashReporting;
 
 public class ParseApplication extends Application {
 
@@ -11,8 +10,12 @@ public class ParseApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        ParseCrashReporting.enable(this);
         Parse.enableLocalDatastore(this);
-        Parse.initialize(this, "SBlsPGbKWzYu4kF1vKJmrLVlgQmoGbhRPRaMBvUM", "neeJ39h45acmGl4S8Z6pgDb0YsRUBDlIct2QyV9o");
+        Parse.initialize(new Parse.Configuration.Builder(this)
+                .applicationId("SBlsPGbKWzYu4kF1vKJmrLVlgQmoGbhRPRaMBvUM")
+                .clientKey(null)
+                .server("http://ble-ground-sensor-parse-20160615.us-east-1.elasticbeanstalk.com/parse/")
+                .build()
+        );
     }
 }
