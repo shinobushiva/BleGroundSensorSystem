@@ -8,7 +8,7 @@
 #define STATUS_CHECK_TIME                APP_TIMER_TICKS(1000, 0)
 
 BLEDevice                                      ble;
-static app_timer_id_t                    m_1s_timer_id; 
+Ticker                                   ticker;
 
 //static uint16_t value=0;
 
@@ -95,7 +95,7 @@ void readSensorValues(){
 }
 
 
-static void disconnectionCallBack(void)
+static void disconnectionCallBack(const Gap::DisconnectionCallbackParams_t *params)
 {
     Serial.println("Disconnected ");
     Serial.println("Restart advertising ");
@@ -103,15 +103,15 @@ static void disconnectionCallBack(void)
 }
 
 // GATT call back handle
-void writtenHandle(uint16_t charHandle)
+void writtenHandle(const GattWriteCallbackParams *Handler)
 {
     uint8_t buf[TXRX_BUF_LEN];
     uint16_t bytesRead, index;
 
     Serial.println("Write Handle : ");
-    if (charHandle == characteristic1.getHandle())
+    if (Handler->handle == characteristic1.getValueAttribute().getHandle())
     {
-        ble.readCharacteristicValue(characteristic1.getHandle(), buf, &bytesRead);
+        ble.readCharacteristicValue(characteristic1.getValueAttribute().getHandle(), buf, &bytesRead);
         for(byte index=0; index<bytesRead; index++)
         {
             Serial.print(buf[index], HEX);
@@ -123,21 +123,21 @@ void writtenHandle(uint16_t charHandle)
 uint8_t buf[2];
 
 // Task handle
-void m_1s_handle(void * p_context)
+void m_1s_handle()
 {
     Serial.println("1s Loop ");
     readSensorValues();
 
     uint16_t iHumid = round(humid);
     memcpy(buf, &iHumid, 2);    
-    ble.updateCharacteristicValue(characteristic2.getHandle(), buf, 2);
-    ble.updateCharacteristicValue(characteristic3.getHandle(), buf, 2);
+    ble.updateCharacteristicValue(characteristic2.getValueAttribute().getHandle(), buf, 2);
+    ble.updateCharacteristicValue(characteristic3.getValueAttribute().getHandle(), buf, 2);
 
     
     uint16_t iTemp = round(tempC);
     memcpy(buf, &iTemp, 2);
-    ble.updateCharacteristicValue(characteristic4.getHandle(), buf, 2);
-    ble.updateCharacteristicValue(characteristic5.getHandle(), buf, 2);
+    ble.updateCharacteristicValue(characteristic4.getValueAttribute().getHandle(), buf, 2);
+    ble.updateCharacteristicValue(characteristic5.getValueAttribute().getHandle(), buf, 2);
 }
 
 
@@ -151,11 +151,8 @@ void ble_setup() {
     ble.init();
     ble.onDisconnection(disconnectionCallBack);
     ble.onDataWritten(writtenHandle);
-    
-    err_code = app_timer_create(&m_1s_timer_id, APP_TIMER_MODE_REPEATED, m_1s_handle );
-    APP_ERROR_CHECK(err_code);
-    err_code = app_timer_start(m_1s_timer_id, STATUS_CHECK_TIME, NULL);
-    APP_ERROR_CHECK(err_code);  
+
+    ticker.attach(m_1s_handle, 1);
       
     // setup adv_data and srp_data
     ble.accumulateAdvertisingPayload(GapAdvertisingData::BREDR_NOT_SUPPORTED);
